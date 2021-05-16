@@ -1,87 +1,63 @@
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <netinet/in.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
+#include "../header.h"
 
-#define PORT 8080
-#define BUFFER_SIZE 1024
+void write_file(int sockfd){
+  int n;
+  FILE *fp;
+  char *filename = "text.txt";
+  char buffer[SIZE];
 
-void write_file(int socket, char* buffer){
-	int n;
-	FILE *fp;
-	char *filename = "text.txt";
-
-	fp = fopen(filename,"w");
-	while (1)
-	{
-		n = recv(socket,buffer,BUFFER_SIZE,0);
-		if(n <= 0){
-			break;
-		}
-		printf("%s\n",buffer);
-		fprintf(fp,"%s",buffer);
-		bzero(buffer,BUFFER_SIZE);
-	}
-	fclose(fp);
-	return;
+  fp = fopen(filename, "w");
+  while (1) {
+    n = recv(sockfd, buffer, SIZE, 0);
+    if (n <= 0){
+      break;
+      return;
+    }
+    fprintf(fp, "%s", buffer);
+    bzero(buffer, SIZE);
+  }
+  return;
 }
 
-int main(int argc, char const *argv[])
-{
-	char * ip = "127.0.0.1";
-	int socketfd, new_socket;
-	struct sockaddr_in sv_address, new_addr;
-	socklen_t addr_size;
-	int addrlen = sizeof(sv_address);
-	char buffer[1024];
-	bzero(buffer,BUFFER_SIZE);
-	
-	// Criar o file descriptor do socket
-	//AF_INET é uma familia de endereços que permite o socket se comunicar com
-	//o protocolo ipv4
-	//SOCK_STREAM protocolo de conecção TCP
-	if ((socketfd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-	{
-		perror("Erro ao criar socket");
-		exit(1);
-	}
+int main(){
+  char *ip = "127.0.0.1";
+  int port = 8080;
+  int e;
 
-	printf("Socket criado...\n");
-	
-	sv_address.sin_family = AF_INET;
-	sv_address.sin_addr.s_addr = inet_addr(ip);
-	sv_address.sin_port = PORT;
-	
-	//Coloca o endereço no socket
-	if (bind(socketfd, (struct sockaddr *)&sv_address,sizeof(sv_address))<0)
-	{
-		perror("bind falhou");
-		exit(1);
-	}
+  int sockfd, new_sock;
+  struct sockaddr_in server_addr, new_addr;
+  socklen_t addr_size;
+  char buffer[SIZE];
 
-	printf("Bind feito com sucesso...\n");
+  sockfd = socket(AF_INET, SOCK_STREAM, 0);
+  if(sockfd < 0) {
+    perror("[-]Error in socket");
+    exit(1);
+  }
+  printf("[+]Server socket created successfully.\n");
 
-	if (listen(socketfd, 10) < 0)
-	{
-		perror("Nao foi possivel ouvir outras conexoes");
-		exit(1);
-	}else{
-		printf("Listening...");
-	}
+  server_addr.sin_family = AF_INET;
+  server_addr.sin_port = port;
+  server_addr.sin_addr.s_addr = inet_addr(ip);
 
-	addr_size = sizeof(new_addr);
+  e = bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
+  if(e < 0) {
+    perror("[-]Error in bind");
+    exit(1);
+  }
+  printf("[+]Binding successfull.\n");
 
-	if ((new_socket = accept(socketfd, (struct sockaddr *)&new_addr,&addr_size))<0)
-	{
-		perror("accept error");
-		exit(1);
-	}
+  if(listen(sockfd, 10) == 0){
+ printf("[+]Listening....\n");
+ }else{
+ perror("[-]Error in listening");
+    exit(1);
+ }
 
-	write_file(new_socket, buffer);
-	printf("Arquivo escrito com sucesso!\n");
+  addr_size = sizeof(new_addr);
+  new_sock = accept(sockfd, (struct sockaddr*)&new_addr, &addr_size);
+  write_file(new_sock);
+  printf("[+]Data written in the file successfully.\n");
 
-	return 0;
+  return 0;
 }
