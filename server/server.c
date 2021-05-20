@@ -1,63 +1,62 @@
 #include "../header.h"
+#include "../write_file.h"
+#include "dir.h"
 
-void write_file(int sockfd){
-  int n;
-  FILE *fp;
-  char *filename = "text.txt";
-  char buffer[SIZE];
-
-  fp = fopen(filename, "w");
-  while (1) {
-    n = recv(sockfd, buffer, SIZE, 0);
-    if (n <= 0){
-      break;
-      return;
+int main(int argc, char const *argv[])
+{
+    int server_fd, new_socket, rc;
+    struct sockaddr_in address;
+    int addrlen = sizeof(address);
+    char buffer[1024];
+    char filename[1024];
+    int opt=0;
+    bzero(buffer,1024);
+    bzero(filename,1024);
+       
+    // Creating socket file descriptor
+    if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
+    {
+        printf("Erro ao criar socekt");
+        exit(1);
     }
-    fprintf(fp, "%s", buffer);
-    bzero(buffer, SIZE);
-  }
-  return;
-}
 
-int main(){
-  char *ip = "127.0.0.1";
-  int port = 8080;
-  int e;
+    address.sin_family = AF_INET;
+    address.sin_addr.s_addr = INADDR_ANY;
+    address.sin_port = htons( PORT );
+       
+    // Forcefully attaching socket to the port 8080
+    if (bind(server_fd, (struct sockaddr *)&address,sizeof(address))<0)
+    {
+        printf("Bind falhou");
+        exit(1);
+    }
+    if (listen(server_fd, 3) < 0)
+    {
+        printf("Erro ao ouvir conexoes");
+        exit(1);
+    }
 
-  int sockfd, new_sock;
-  struct sockaddr_in server_addr, new_addr;
-  socklen_t addr_size;
-  char buffer[SIZE];
+    new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen);
+        
 
-  sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  if(sockfd < 0) {
-    perror("[-]Error in socket");
-    exit(1);
-  }
-  printf("[+]Server socket created successfully.\n");
+    if (new_socket <0)
+    {
+        printf("Erro ao aceitar conexao");
+        exit(1);
+    }
 
-  server_addr.sin_family = AF_INET;
-  server_addr.sin_port = port;
-  server_addr.sin_addr.s_addr = inet_addr(ip);
+    int size = 0;
+    rc = recv(new_socket,filename,sizeof(filename),0);
+    rc = recv(new_socket,(int*)&size,sizeof(int),0);
+    printf("%s\n",filename);
+    printf("%d\n",size);
+    if(write_file(new_socket,filename,size) < 0)
+    {
+        printf("Erro ao criar arquivo no servidor.");
+        close(server_fd);
+        return 1;
+    }
 
-  e = bind(sockfd, (struct sockaddr*)&server_addr, sizeof(server_addr));
-  if(e < 0) {
-    perror("[-]Error in bind");
-    exit(1);
-  }
-  printf("[+]Binding successfull.\n");
-
-  if(listen(sockfd, 10) == 0){
- printf("[+]Listening....\n");
- }else{
- perror("[-]Error in listening");
-    exit(1);
- }
-
-  addr_size = sizeof(new_addr);
-  new_sock = accept(sockfd, (struct sockaddr*)&new_addr, &addr_size);
-  write_file(new_sock);
-  printf("[+]Data written in the file successfully.\n");
-
-  return 0;
+    close(server_fd);
+    return 0;
 }

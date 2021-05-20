@@ -1,41 +1,55 @@
-// Client side C/C++ program to demonstrate Socket programming
-#include <stdio.h>
-#include <sys/socket.h>
-#include <arpa/inet.h>
-#include <unistd.h>
-#include <string.h>
-#define PORT 8080
+#include "../header.h"
+#include "../send_file.h"
 
 int main(int argc, char const *argv[])
 {
-	int sock = 0, valread;
-	struct sockaddr_in serv_addr;
-	char *hello = "Hello from client";
-	char buffer[1024] = {0};
-	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
-	{
-		printf("\n Socket creation error \n");
-		return -1;
-	}
+    int sock = 0, valread;
+    struct sockaddr_in serv_addr;
+    char filename[1024] = "Autômatos de Pilha-20210428_162033-Meeting Recording.mp4";
+    char buffer[1024] = {0};
+    if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+    {
+        printf("\n Socket creation error \n");
+        return -1;
+    }
+   
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons(PORT);
+    serv_addr.sin_addr.s_addr = inet_addr(IP);
+   
+    if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
+    {
+        printf("\nConnection Failed \n");
+        return -1;
+    }
 
-	serv_addr.sin_family = AF_INET;
-	serv_addr.sin_port = htons(PORT);
-	
-	// Convert IPv4 and IPv6 addresses from text to binary form
-	if(inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)<=0)
-	{
-		printf("\nInvalid address/ Address not supported \n");
-		return -1;
-	}
+    //send(sock , hello , strlen(hello) , 0 );
+    int num = 0;
+    printf("-->Digite 1 para ver arquivos no servidor\n");
+    printf("-->Digite 2 para enviar um arquivo\n");
+    printf("-->Digite 3 para receber um arquivo do servidor\n");
+    printf("-->: ");
+    // scanf("%d",&num);
+    // send(sock, (int*)&num, sizeof(int),0);
+    // if(num == 2){
+        FILE *fp;
+        fp = fopen(filename,"r");
+        if(fp == NULL){
+            printf("Arquivo nao existe");
+            exit(1);
+        }
+        struct stat st;
+        stat(filename,&st);
+        int size = st.st_size;
+        send(sock,filename,BUFFER_SIZE,0);
+        send(sock,(int*)&size,sizeof(int),0);
+        printf("Tamanho: %d\n",size);
+        send_file(fp,sock,filename,size);
+    // }
 
-	if (connect(sock, (struct sockaddr *)&serv_addr, sizeof(serv_addr)) < 0)
-	{
-		printf("\nConnection Failed \n");
-		return -1;
-	}
-	send(sock , hello , strlen(hello) , 0 );
-	printf("Hello message sent\n");
-	valread = read( sock , buffer, 1024);
-	printf("%s\n",buffer );
-	return 0;
+    read( sock , buffer, 1024);
+    printf("%s\n",buffer );
+
+    close(sock);
+    return 0;
 }
