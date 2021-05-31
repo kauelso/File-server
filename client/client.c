@@ -43,7 +43,7 @@ int main(int argc, char const *argv[])
     if(num == 1){//Envia um arqivo
         printf("Nome do arquivo: ");
         scanf("%s",filename);//Nome do arquivo
-        int size = 0;
+        size_t size = 0;
         FILE *fp;
         char path[4096];
         sprintf(path,"./stored/%s",filename);//Cria o path do arquivo
@@ -58,20 +58,14 @@ int main(int argc, char const *argv[])
         size = st.st_size;//Recebe o tamanho do arquivo
         
         send(sock,filename,BUFFER_SIZE,0);//Informa o nome do arquivo para o servidor
-        send(sock,(int*)&size,sizeof(int),0);//Informa o tamanho do arquivo ai servidor
+        //send(sock,(size_t*)&size,sizeof(size_t),0);//Informa o tamanho do arquivo ai servidor
         printf("Enviando arquivo...\n");
         send_file(fp,sock,filename,size);//Inicia o envio do arquivo
 
-        rc = recv(sock,(int*)&size,sizeof(int),0);//Recebe o resultado da operacao, -1 para erro
-        if (size == -1){
-            printf("Erro no servidor.");
-            close(sock);
-            exit(1);
-        }
-        else{
-            printf("Arquivo enviado com sucesso");
-        }
-        
+        rc = recv(sock,filename,1024,0);//Recebe o resultado da operacao
+
+        printf("%s\n",filename);
+        fclose(fp);       
     }
     if(num == 2){//Recebe o arquivo
         printf("Nome do arquivo: ");
@@ -84,7 +78,7 @@ int main(int argc, char const *argv[])
             close(sock);
             exit(1);
         }
-        if(write_file(sock,filename,size) < 0)//Caso exista o arquivo no servidor, escreve o arquivo localmente
+        if(write_file(sock,filename) < 0)//Caso exista o arquivo no servidor, escreve o arquivo localmente
         {
             printf("Erro ao criar arquivo %s no client.",filename);
             close(sock);

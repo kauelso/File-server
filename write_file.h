@@ -42,8 +42,8 @@ int writeName(char* filename){
   return 0;
 }
 
-int write_file(int socketfd,char* filename, int size){
-  int n;
+int write_file(int socketfd,char* filename){
+  size_t n;
   FILE *fp;
   char path[BUFFER_SIZE];
   char buffer[BUFFER_SIZE];
@@ -54,43 +54,34 @@ int write_file(int socketfd,char* filename, int size){
     strcpy(buffer,"Erro ao transfirir arquivo");
     send(socketfd, buffer, sizeof(buffer), 0);
     printf("Erro ao escrever nome do arquivo.\n");
-    exit(1);
+    return -1;
   }
 
   sprintf(path,"./stored/%s",filename);
 
-  int check_size = size;
-
   fp = fopen(path, "w");
   if(fp == NULL){
     strcpy(buffer,"Erro ao transfirir arquivo\n");
+    fclose(fp);
     return -1;
   }
-  while (check_size > 0) {
-    if (check_size >= BUFFER_SIZE){
-      n = recv(socketfd, buffer, BUFFER_SIZE, 0);
-      if(n < 0){
-        printf("Error recieving data.\n");
-        fclose(fp);
-        close(socketfd);
-        exit(1);
-      }
-      fwrite(buffer,sizeof(char),BUFFER_SIZE,fp);
+  while (1)
+  {
+    recv(socketfd, (size_t*)&n, sizeof(size_t), 0); //Recebe a quantidade de bytes
+    printf("%ld\n",n);
+    if(n < 0){
+      printf("Error recieving data.\n");
+      fclose(fp);
+      close(socketfd);
+      return -1;
     }
-    else{
-      n = recv(socketfd, buffer, check_size, 0);
-      if(n < 0){
-        printf("Error recieving data.\n");
-        fclose(fp);
-        close(socketfd);
-        exit(1);
-      }
-      fwrite(buffer,sizeof(char),check_size,fp);
+    if(n == 0){
+      break;
     }
-    check_size = check_size - BUFFER_SIZE;
-    bzero(buffer, BUFFER_SIZE);
+    recv(socketfd, buffer, n, 0); //Recebe os bytes do arquivo
+    fwrite(buffer,sizeof(char),n,fp); //Escreve os bytes no arquivo
+    
   }
-  strcpy(buffer,"Arquivo enviado com sucesso.\n");
   fclose(fp);
   return 0;
 }
