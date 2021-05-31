@@ -51,22 +51,22 @@ int main(int argc, char const *argv[])
         if(opt == 1){
             pthread_t thread;
             pthread_create(&thread, NULL, recieve_func, (void *)&new_socket);
-            pthread_join(thread,NULL);
+            //pthread_join(thread,NULL);
         }
         if(opt == 2){
             pthread_t thread;
             pthread_create(&thread, NULL, send_func, (void *)&new_socket);
-            pthread_join(thread,NULL);
+            //pthread_join(thread,NULL);
         }
         if(opt == 3){
             pthread_t thread;
             pthread_create(&thread, NULL, remove_func, (void *)&new_socket);
-            pthread_join(thread,NULL);
+            //pthread_join(thread,NULL);
         }
         if(opt == 4){
             pthread_t thread;
             pthread_create(&thread, NULL, dir_func, (void *)&new_socket);
-            pthread_join(thread,NULL);
+            //pthread_join(thread,NULL);
         }
 
     }

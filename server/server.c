@@ -6,7 +6,6 @@
 int server_fd, new_socket;
 
 void closesock(){
-    close(new_socket);
     close(server_fd);
     exit(1);
 }
@@ -57,8 +56,7 @@ int main(int argc, char const *argv[])
         int size = 0;
         if(opt == 1){
             rc = recv(new_socket,filename,sizeof(filename),0);//Recebe nome do arquivo
-            rc = recv(new_socket,(int*)&size,sizeof(int),0);//Recebe tamanho do arquivo
-            if(write_file(new_socket,filename,size) < 0)//Comeca a escrever o arquivo
+            if(write_file(new_socket,filename) < 0)//Comeca a escrever o arquivo
             {
                 strcpy(buffer,"Erro ao criar arquivo no servidor.\n");
                 send(new_socket,buffer,BUFFER_SIZE,0);
@@ -67,6 +65,7 @@ int main(int argc, char const *argv[])
                 strcpy(buffer,"Arquivo criado com sucesso.\n");
                 send(new_socket,buffer,BUFFER_SIZE,0);
             }
+            close(new_socket);
         }
         if(opt == 2){
             FILE *fp;
@@ -116,6 +115,9 @@ int main(int argc, char const *argv[])
                
             }   
         }
+            if(opt == 4){
+                dir(new_socket);
+            }
 
     }
     if (new_socket <0)
