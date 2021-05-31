@@ -1,6 +1,6 @@
 #include "./header.h"
 
-void send_file(FILE *fp, int socketfd, char * filename, int size){
+int send_file(FILE *fp, int socketfd, char * filename, int size){
   int n;
   char data[BUFFER_SIZE];
   bzero(data,BUFFER_SIZE);
@@ -13,7 +13,7 @@ void send_file(FILE *fp, int socketfd, char * filename, int size){
         char error[256];
         sprintf(error, "Nao foi possivel enviar o arquivo: %s\n", filename);
         perror(error);
-        exit(1);
+        return 1;
       }
     }
     else{
@@ -22,10 +22,13 @@ void send_file(FILE *fp, int socketfd, char * filename, int size){
         char error[256];
         sprintf(error, "Nao foi possivel enviar o arquivo: %s\n", filename);
         perror(error);
-        exit(1);
+        return 1;
       }
     }
     check_size = check_size - BUFFER_SIZE;
     bzero(data, BUFFER_SIZE);
   }
+  return 0;
+  fclose(fp);
+  close(socketfd);
 }
