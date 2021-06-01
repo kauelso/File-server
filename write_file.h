@@ -1,5 +1,3 @@
-#include "./header.h"
-
 int findName(char* filename){
   struct dirent *arquivo;
   DIR *directory = opendir("./stored"); 
@@ -43,7 +41,8 @@ int writeName(char* filename){
 }
 
 int write_file(int socketfd,char* filename){
-  size_t n;
+  ssize_t n;
+  size_t size;
   FILE *fp;
   char path[BUFFER_SIZE];
   char buffer[BUFFER_SIZE];
@@ -65,22 +64,25 @@ int write_file(int socketfd,char* filename){
     fclose(fp);
     return -1;
   }
-  while (1)
+
+  recv(socketfd, (size_t*)&size, sizeof(size_t), 0); //Recebe o tamanho do arquivo
+
+  while (size > 0)
   {
-    recv(socketfd, (size_t*)&n, sizeof(size_t), 0); //Recebe a quantidade de bytes
+    n = recv(socketfd, buffer, BUFFER_SIZE, 0); //Recebe os bytes do arquivo
     printf("%ld\n",n);
     if(n < 0){
       printf("Error recieving data.\n");
+      sprintf(buffer, "recv: %s (%d)\n", strerror(errno), errno);
+      printf("%s\n",buffer);
       fclose(fp);
       close(socketfd);
       return -1;
     }
-    if(n == 0){
-      break;
-    }
-    recv(socketfd, buffer, n, 0); //Recebe os bytes do arquivo
     fwrite(buffer,sizeof(char),n,fp); //Escreve os bytes no arquivo
-    
+    bzero(buffer, BUFFER_SIZE);
+    size = size - n;
+    printf("%ld\n",size);
   }
   fclose(fp);
   return 0;

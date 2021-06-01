@@ -44,7 +44,7 @@ int main(int argc, char const *argv[])
     }
     //Servidor ouvindo novas requisicoes
     printf("Ouvindo requisicoes...\n");
-    if (listen(server_fd, 3) < 0)
+    if (listen(server_fd, 10) < 0)
     {
         printf("Erro ao ouvir conexoes");
         exit(1);
@@ -67,31 +67,37 @@ int main(int argc, char const *argv[])
             }
             close(new_socket);
         }
+
         if(opt == 2){
+            size_t size = 0;
             FILE *fp;
             char path[4096];
+
             rc = recv(new_socket,filename,sizeof(filename),0);//Recebe nome do arquivo
-            sprintf(path,"./stored/%s",filename);
+            sprintf(path,"./stored/%s",filename);//Cria o path do arquivo
+
             fp = fopen(path,"r");
+
             if(fp == NULL){
-                printf("Arquivo nao existe.");
-                size = -1;
-                send(new_socket,(int*)&size,sizeof(int),0);//Informa que o arquivo nao existe
+                int res = -1;
+                send(new_socket,(int*)&res,sizeof(int),0);
+                fclose(fp);
+                close(new_socket);
             }
+
             else{
+                int res = 0;
+                send(new_socket,(int*)&res,sizeof(int),0);
+
                 struct stat st;
                 stat(path,&st);
-                int size = st.st_size;
-                send(new_socket,(int*)&size,sizeof(int),0);
-                if(send_file(fp,new_socket,filename,size) == 1){
-                    size = -1;
-                    send(new_socket,(int*)&size,sizeof(int),0);//Informa o estado da operacao
-                }
-                else{
-                    size = 0;
-                    send(new_socket,(int*)&size,sizeof(int),0);//Informa o estado da operacao
-                }
+                size = st.st_size;//Recebe o tamanho do arquivo
+                
+                send_file(fp,new_socket,filename,size);//Inicia o envio do arquivo
+
+                fclose(fp);
             }
+            
         }
             if(opt == 3){
             char path[4096];
@@ -113,7 +119,7 @@ int main(int argc, char const *argv[])
                 res = -1;
                 send(new_socket,(int*)&res,sizeof(int),0);//Informa que o arquivo nao existe
                
-            }   
+            } 
         }
             if(opt == 4){
                 dir(new_socket);

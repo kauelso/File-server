@@ -68,12 +68,13 @@ int main(int argc, char const *argv[])
         fclose(fp);       
     }
     if(num == 2){//Recebe o arquivo
+        int res = 0;
         printf("Nome do arquivo: ");
         scanf("%s",filename);//Nome do arquivo a ser recebido
         send(sock,filename,BUFFER_SIZE,0);//Informa o nome do arquivo para o servidor
-        int size = 0;
-        rc = recv(sock,(int*)&size,sizeof(int),0);//Recebe resposta do servidor
-        if (size == -1){
+
+        rc = recv(sock,(int*)&res,sizeof(int),0);//Recebe resposta do servidor
+        if (res == -1){
             printf("Arquivo nao existe no servidor.");
             close(sock);
             exit(1);
@@ -105,13 +106,13 @@ int main(int argc, char const *argv[])
     }
     if(num == 4){
         int res = 0;
-        rc = recv(sock,(int*)&res,sizeof(int),0);//Recebe resposta di servidor
+        rc = recv(sock,(int*)&res,sizeof(int),0);//Recebe resposta do servidor
         if (res == 0){
             printf("Erro no servidor ao listar arquivos.");
             close(sock);
             return 1;
         }
-        char buffer[1024] = {0};
+        char buffer[BUFFER_SIZE] = {0};
         rc = recv(sock,buffer,BUFFER_SIZE,0);//Recebe nome de arquivo do servidor
         printf("%s\n",buffer);
         while(1){
