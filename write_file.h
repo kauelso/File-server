@@ -66,23 +66,21 @@ int write_file(int socketfd,char* filename){
   }
 
   recv(socketfd, (size_t*)&size, sizeof(size_t), 0); //Recebe o tamanho do arquivo
-
+  printf("%ld\n",size);
+  
   while (size > 0)
   {
     n = recv(socketfd, buffer, BUFFER_SIZE, 0); //Recebe os bytes do arquivo
-    printf("%ld\n",n);
     if(n < 0){
       printf("Error recieving data.\n");
       sprintf(buffer, "recv: %s (%d)\n", strerror(errno), errno);
       printf("%s\n",buffer);
       fclose(fp);
-      close(socketfd);
       return -1;
     }
     fwrite(buffer,sizeof(char),n,fp); //Escreve os bytes no arquivo
     bzero(buffer, BUFFER_SIZE);
     size = size - n;
-    printf("%ld\n",size);
   }
   fclose(fp);
   return 0;

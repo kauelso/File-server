@@ -38,7 +38,7 @@ int main(int argc, char const *argv[])
     }
     //Servidor ouvindo novas requisicoes
     printf("Ouvindo requisicoes...\n");
-    if (listen(server_fd, 3) < 0)
+    if (listen(server_fd, 20) < 0)
     {
         printf("Erro ao ouvir conexoes");
         exit(1);
@@ -50,23 +50,27 @@ int main(int argc, char const *argv[])
 
         if(opt == 1){
             pthread_t thread;
-            pthread_create(&thread, NULL, recieve_func, (void *)&new_socket);
-            //pthread_join(thread,NULL);
+            int *client = malloc(sizeof(int));
+            *client = new_socket;
+            pthread_create(&thread, NULL, recieve_func,(void*)client);
         }
         if(opt == 2){
             pthread_t thread;
-            pthread_create(&thread, NULL, send_func, (void *)&new_socket);
-            //pthread_join(thread,NULL);
+            int *client = malloc(sizeof(int));
+            *client = new_socket;
+            pthread_create(&thread, NULL, recieve_func,(void*)client);
         }
         if(opt == 3){
             pthread_t thread;
-            pthread_create(&thread, NULL, remove_func, (void *)&new_socket);
-            //pthread_join(thread,NULL);
+            int *client = malloc(sizeof(int));
+            *client = new_socket;
+            pthread_create(&thread, NULL, recieve_func,(void*)client);
         }
         if(opt == 4){
             pthread_t thread;
-            pthread_create(&thread, NULL, dir_func, (void *)&new_socket);
-            //pthread_join(thread,NULL);
+            int *client = malloc(sizeof(int));
+            *client = new_socket;
+            pthread_create(&thread, NULL, recieve_func,(void*)client);
         }
 
     }

@@ -25,6 +25,8 @@ int main(int argc, char const *argv[])
        
     // Creating socket file descriptor
     printf("Criando socket...\n");
+    //AF_INET indica que o socket e do tipo IPV4
+    //SOCK_STREM indica que o protocolo do socket e o TCP
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
     {
         printf("Erro ao criar socekt");
@@ -53,19 +55,17 @@ int main(int argc, char const *argv[])
     while((new_socket = accept(server_fd, (struct sockaddr *)&address, (socklen_t*)&addrlen))>0) {
         //Recebe qual opcao foi escolhida pelo usuario
         rc = recv(new_socket,(int*)&opt,sizeof(int),0);
-        int size = 0;
         if(opt == 1){
             rc = recv(new_socket,filename,sizeof(filename),0);//Recebe nome do arquivo
             if(write_file(new_socket,filename) < 0)//Comeca a escrever o arquivo
             {
                 strcpy(buffer,"Erro ao criar arquivo no servidor.\n");
-                send(new_socket,buffer,BUFFER_SIZE,0);
+                send(new_socket,buffer,1024,0);
             }
             else{
                 strcpy(buffer,"Arquivo criado com sucesso.\n");
-                send(new_socket,buffer,BUFFER_SIZE,0);
+                send(new_socket,buffer,1024,0);
             }
-            close(new_socket);
         }
 
         if(opt == 2){

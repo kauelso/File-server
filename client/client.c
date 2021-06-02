@@ -57,8 +57,7 @@ int main(int argc, char const *argv[])
         stat(path,&st);
         size = st.st_size;//Recebe o tamanho do arquivo
         
-        send(sock,filename,BUFFER_SIZE,0);//Informa o nome do arquivo para o servidor
-        //send(sock,(size_t*)&size,sizeof(size_t),0);//Informa o tamanho do arquivo ai servidor
+        send(sock,filename,1024,0);//Informa o nome do arquivo para o servidor
         printf("Enviando arquivo...\n");
         send_file(fp,sock,filename,size);//Inicia o envio do arquivo
 
@@ -87,7 +86,6 @@ int main(int argc, char const *argv[])
         }
 
         printf("Arquivo recebido com sucesso.\n");
-        close(sock);
     }
     if(num == 3){//Excluir um arquivo do servidor
         int res = 0;
@@ -102,7 +100,6 @@ int main(int argc, char const *argv[])
         }
 
         printf("Arquivo excluido com sucesso.\n");
-        close(sock);
     }
     if(num == 4){
         int res = 0;
