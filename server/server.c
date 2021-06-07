@@ -46,7 +46,7 @@ int main(int argc, char const *argv[])
     }
     //Servidor ouvindo novas requisicoes
     printf("Ouvindo requisicoes...\n");
-    if (listen(server_fd, 10) < 0)
+    if (listen(server_fd, 20) < 0)
     {
         printf("Erro ao ouvir conexoes");
         exit(1);
@@ -57,15 +57,7 @@ int main(int argc, char const *argv[])
         rc = recv(new_socket,(int*)&opt,sizeof(int),0);
         if(opt == 1){
             rc = recv(new_socket,filename,sizeof(filename),0);//Recebe nome do arquivo
-            if(write_file(new_socket,filename) < 0)//Comeca a escrever o arquivo
-            {
-                strcpy(buffer,"Erro ao criar arquivo no servidor.\n");
-                send(new_socket,buffer,1024,0);
-            }
-            else{
-                strcpy(buffer,"Arquivo criado com sucesso.\n");
-                send(new_socket,buffer,1024,0);
-            }
+            write_file(new_socket,filename);//Comeca a escrever o arquivo
         }
 
         if(opt == 2){
@@ -118,11 +110,22 @@ int main(int argc, char const *argv[])
                 printf("Erro ao encontrar arquivo.");
                 res = -1;
                 send(new_socket,(int*)&res,sizeof(int),0);//Informa que o arquivo nao existe
-               
-            } 
+            }
+
+            recv(new_socket,path,4096,MSG_WAITALL);
+            printf("%s\n",path);
+            shutdown(new_socket,SHUT_WR);
+            close(new_socket);
         }
             if(opt == 4){
                 dir(new_socket);
+
+                char data[BUFFER_SIZE] = {0};
+
+                recv(new_socket,data,4096,MSG_WAITALL);
+                printf("%s\n",data);
+                shutdown(new_socket,SHUT_WR);
+                close(new_socket);
             }
 
     }

@@ -13,6 +13,12 @@ int send_file(FILE *fp, int socketfd, char * filename, size_t size){
     check_size = check_size - n; //Subtrai a quantidade lida com o total
     bzero(data, BUFFER_SIZE);
   }
+  bzero(data, BUFFER_SIZE);
+
+  recv(socketfd,data,BUFFER_SIZE,MSG_WAITALL);
+  printf("%s\n",data);
+  shutdown(socketfd,SHUT_WR);
   close(socketfd);
+
   return 0;
 }

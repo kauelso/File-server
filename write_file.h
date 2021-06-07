@@ -75,6 +75,8 @@ int write_file(int socketfd,char* filename){
       printf("Error recieving data.\n");
       sprintf(buffer, "recv: %s (%d)\n", strerror(errno), errno);
       printf("%s\n",buffer);
+      send(socketfd,buffer,BUFFER_SIZE,0);//Envia resposta ao servidor
+      close(socketfd);
       fclose(fp);
       return -1;
     }
@@ -82,6 +84,15 @@ int write_file(int socketfd,char* filename){
     bzero(buffer, BUFFER_SIZE);
     size = size - n;
   }
+
+  bzero(buffer,BUFFER_SIZE);
+  sprintf(buffer,"Arquivo %s recebido.\n",filename);
+
+  printf("%s\n",buffer);
+  
+  send(socketfd,buffer,BUFFER_SIZE,0);//Envia resposta ao servidor
+  close(socketfd);
+
   fclose(fp);
   return 0;
 }

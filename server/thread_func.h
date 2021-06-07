@@ -7,37 +7,28 @@ void *recieve_func(void *arg)
     int new_socket = *((int*)arg);
     free(arg);
     int rc;
-    char buffer[1024];
     char filename[1024];
-    bzero(buffer,1024);
     bzero(filename,1024);
 
     rc = recv(new_socket,filename,sizeof(filename),0);//Recebe nome do arquivo
-    if(write_file(new_socket,filename) < 0)//Comeca a escrever o arquivo
-    {
-        strcpy(buffer,"Erro ao criar arquivo no servidor.\n");
-        send(new_socket,buffer,1024,0);
-    }
-    else{
-        strcpy(buffer,"Arquivo criado com sucesso.\n");
-        send(new_socket,buffer,1024,0);
-    }
-    return NULL;
+    write_file(new_socket,filename);//Comeca a escrever o arquivo
+
+    pthread_exit(NULL);
 }
 
 void *send_func(void *arg)
 {
     int new_socket = *((int*)arg);
     free(arg);
-    int rc;
     size_t size = 0;
+    int rc;
     FILE *fp;
-    char path[4096];
-    char filename[1024];
-    bzero(filename,1024);
+    char path[4096] = {0};
+    char filename[1024] ={0};
 
     rc = recv(new_socket,filename,sizeof(filename),0);//Recebe nome do arquivo
     sprintf(path,"./stored/%s",filename);//Cria o path do arquivo
+    printf("%s\n",path);
 
     fp = fopen(path,"r");
 
@@ -60,20 +51,17 @@ void *send_func(void *arg)
 
         fclose(fp);
     }
-    return NULL;
+    pthread_exit(NULL);
 }
 
 void *remove_func(void *arg)
 {
     int new_socket = *((int*)arg);
+    int res = 0;
     free(arg);
-    int rc;
     char filename[1024];
     char path[4096];
 
-    rc = recv(new_socket,filename,sizeof(filename),0);//Recebe nome do arquivo
-    sprintf(path,"./stored/%s",filename);
-    int res = 0;
     if(findName(filename) == 1){
         if(remove(path) != 0){
             res = -1;
@@ -88,9 +76,13 @@ void *remove_func(void *arg)
         printf("Erro ao encontrar arquivo.");
         res = -1;
         send(new_socket,(int*)&res,sizeof(int),0);//Informa que o arquivo nao existe
-        
-    }   
-    return NULL;
+    }
+
+    recv(new_socket,path,4096,MSG_WAITALL);
+    printf("%s\n",path);
+    shutdown(new_socket,SHUT_WR);
+    close(new_socket);
+    pthread_exit(NULL);
 }
 
 void *dir_func(void *arg)
@@ -99,5 +91,12 @@ void *dir_func(void *arg)
 
     dir(new_socket);
 
-    return NULL;
+    char data[BUFFER_SIZE] = {0};
+
+    recv(new_socket,data,4096,MSG_WAITALL);
+    printf("%s\n",data);
+    shutdown(new_socket,SHUT_WR);
+    close(new_socket);
+
+    pthread_exit(NULL);
 }

@@ -58,19 +58,19 @@ int main(int argc, char const *argv[])
             pthread_t thread;
             int *client = malloc(sizeof(int));
             *client = new_socket;
-            pthread_create(&thread, NULL, recieve_func,(void*)client);
+            pthread_create(&thread, NULL, send_func,(void*)client);
         }
         if(opt == 3){
             pthread_t thread;
             int *client = malloc(sizeof(int));
             *client = new_socket;
-            pthread_create(&thread, NULL, recieve_func,(void*)client);
+            pthread_create(&thread, NULL, remove_func,(void*)client);
         }
         if(opt == 4){
             pthread_t thread;
             int *client = malloc(sizeof(int));
             *client = new_socket;
-            pthread_create(&thread, NULL, recieve_func,(void*)client);
+            pthread_create(&thread, NULL, dir_func,(void*)client);
         }
 
     }

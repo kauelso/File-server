@@ -59,11 +59,9 @@ int main(int argc, char const *argv[])
         
         send(sock,filename,1024,0);//Informa o nome do arquivo para o servidor
         printf("Enviando arquivo...\n");
+
         send_file(fp,sock,filename,size);//Inicia o envio do arquivo
 
-        rc = recv(sock,filename,1024,0);//Recebe o resultado da operacao
-
-        printf("%s\n",filename);
         fclose(fp);       
     }
     if(num == 2){//Recebe o arquivo
@@ -78,17 +76,17 @@ int main(int argc, char const *argv[])
             close(sock);
             exit(1);
         }
-        if(write_file(sock,filename) < 0)//Caso exista o arquivo no servidor, escreve o arquivo localmente
+        else//Caso exista o arquivo no servidor, escreve o arquivo localmente
         {
-            printf("Erro ao criar arquivo %s no client.",filename);
-            close(sock);
-            exit(1);
+            printf("Recebendo arquivo...\n");
+            write_file(sock,filename);
         }
 
         printf("Arquivo recebido com sucesso.\n");
     }
     if(num == 3){//Excluir um arquivo do servidor
         int res = 0;
+        char buffer[4096];
         printf("Nome do arquivo: ");
         scanf("%s",filename);//Nome do arquivo a ser recebido
         send(sock,filename,BUFFER_SIZE,0);//Informa o nome do arquivo para o servidor
@@ -99,7 +97,12 @@ int main(int argc, char const *argv[])
             exit(1);
         }
 
-        printf("Arquivo excluido com sucesso.\n");
+        sprintf(buffer,"Arquivo %s removido do servidor.\n",filename);
+
+        printf("%s\n",buffer);
+        
+        send(sock,buffer,BUFFER_SIZE,0);//Envia resposta ao servidor
+        close(sock);
     }
     if(num == 4){
         int res = 0;
@@ -120,7 +123,13 @@ int main(int argc, char const *argv[])
             }
             printf("%s\n",buffer);
         }
+        sprintf(buffer,"Todos as informacoes foram recebidas.\n");
+
+        printf("%s\n",buffer);
+        
+        send(sock,buffer,BUFFER_SIZE,0);//Envia resposta ao servidor
+        close(sock);
     }
-    close(sock);
+    
     return 0;
 }
