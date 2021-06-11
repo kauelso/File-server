@@ -6,7 +6,14 @@ int send_file(FILE *fp, int socketfd, char * filename, size_t size){
   size_t check_size = size;
   printf("%ld\n",size);
 
-  send(socketfd, (size_t*)&size, sizeof(size_t), 0); //Envia o tamanho do arquivo
+  sr = send(socketfd, (size_t*)&size, sizeof(size_t), 0); //Envia o tamanho do arquivo
+  if(sr <= 0){
+      printf("Error sending data.\n");
+      sprintf(data, "send: %s (%d)\n", strerror(errno), errno);
+      printf("%s\n",data);
+      close(socketfd);
+      return -1;
+    }
 
   while(check_size > 0) {
     n = fread(data,sizeof(char),BUFFER_SIZE, fp); //Le bytes do arquivo e guarda a quantidade lida em n

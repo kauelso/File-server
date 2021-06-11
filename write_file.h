@@ -65,7 +65,16 @@ int write_file(int socketfd,char* filename){
     return -1;
   }
 
-  recv(socketfd, (size_t*)&size, sizeof(size_t), 0); //Recebe o tamanho do arquivo
+  n = recv(socketfd, (size_t*)&size, sizeof(size_t), 0); //Recebe o tamanho do arquivo
+  if(n <= 0){
+      printf("Error recieving data.\n");
+      sprintf(buffer, "recv: %s (%d)\n", strerror(errno), errno);
+      printf("%s\n",buffer);
+      send(socketfd,buffer,BUFFER_SIZE,0);//Envia resposta ao servidor
+      close(socketfd);
+      fclose(fp);
+      return -1;
+    }
   printf("%ld\n",size);
   
   while (size > 0)
