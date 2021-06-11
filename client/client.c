@@ -2,9 +2,19 @@
 #include "../send_file.h"
 #include "../write_file.h"
 
+int sock = 0;
+
+void closesock(){
+    printf("Exiting socket...");
+    close(sock);
+    exit(1);
+}
+
 int main(int argc, char const *argv[])
 {
-    int sock = 0, rc;
+    signal(SIGINT,closesock);
+
+    int rc;
     struct sockaddr_in serv_addr;
     char filename[1024];
 

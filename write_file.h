@@ -41,8 +41,8 @@ int writeName(char* filename){
 }
 
 int write_file(int socketfd,char* filename){
-  ssize_t n;
-  size_t size;
+  ssize_t n,m;
+  size_t size, ws, rcs;
   FILE *fp;
   char path[BUFFER_SIZE];
   char buffer[BUFFER_SIZE];
@@ -70,8 +70,9 @@ int write_file(int socketfd,char* filename){
   
   while (size > 0)
   {
-    n = recv(socketfd, buffer, BUFFER_SIZE, 0); //Recebe os bytes do arquivo
-    if(n < 0){
+    m = recv(socketfd, (size_t*)&rcs, sizeof(size_t), MSG_WAITALL); //Recebe o tamanho do pacote enviado
+    n = recv(socketfd, buffer, rcs, MSG_WAITALL); //Recebe os bytes do arquivo
+    if(n <= 0 || m <= 0){
       printf("Error recieving data.\n");
       sprintf(buffer, "recv: %s (%d)\n", strerror(errno), errno);
       printf("%s\n",buffer);
@@ -80,7 +81,17 @@ int write_file(int socketfd,char* filename){
       fclose(fp);
       return -1;
     }
-    fwrite(buffer,sizeof(char),n,fp); //Escreve os bytes no arquivo
+    ws = fwrite(buffer,sizeof(char),rcs,fp); //Escreve os bytes no arquivo
+    if(ws != rcs){
+      printf("%ld",rcs);
+      printf("Error writing data.\n");
+      sprintf(buffer, "fwrite: %s (%d)\n", strerror(errno), errno);
+      printf("%s\n",buffer);
+      send(socketfd,buffer,BUFFER_SIZE,0);//Envia resposta ao servidor
+      close(socketfd);
+      fclose(fp);
+      return -1;
+    }
     bzero(buffer, BUFFER_SIZE);
     size = size - n;
   }

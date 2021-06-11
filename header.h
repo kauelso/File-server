@@ -11,4 +11,4 @@
 
 #define BUFFER_SIZE 4096
 #define PORT 8080
-#define IP "192.168.0.123"
+#define IP "127.0.0.1"

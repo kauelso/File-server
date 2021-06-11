@@ -6,6 +6,7 @@
 int server_fd, new_socket;
 
 void closesock(){
+    printf("Exiting socket...");
     close(server_fd);
     exit(1);
 }
